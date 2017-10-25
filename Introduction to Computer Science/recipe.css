@@ -1,0 +1,16 @@
+p{
+    border: 5px dotted red;
+    border-style: : dotted;
+    border-width: : 100px;
+    border-color: red;
+    
+}
+h2{
+    font-family: cursive;
+}
+h1{
+    background-color: aqua;
+}
+ol{
+    letter-spacing: 3px;
+}
