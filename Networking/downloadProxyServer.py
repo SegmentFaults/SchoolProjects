@@ -6,6 +6,8 @@ from socket import *
 import sys
 import thread
 import urllib2
+
+
 def main():
     serverSocket = socket(AF_INET, SOCK_STREAM)
     try:
@@ -34,11 +36,13 @@ def main():
 
 
 def connThread(connectionSocket, addr):
+    failStrings=['Paris Hilton', 'SpongeBob', 'Britney Spears', 'Donald Trump']
     try:
         # start try
         message = connectionSocket.recv(4096)
         if 'CONNECT' not in message:
-
+            badContent=False
+            badURL=False
             #print "This is the message : ", message
             http_pos = message.find("://")  # find pos of ://
             # now trim to HTTP 1.0
@@ -61,23 +65,63 @@ def connThread(connectionSocket, addr):
 
             print "temp var", temp;
 
-            filename = message.split()[1]
-            f = open(filename[1:])
-            outputdata = f.read()
-            f.close()
-            # Send one HTTP header line into socket
-            # Must be encoded otherwise the first run makes it plain text.
-            connectionSocket.send('HTTP/1.1 200 OK\r\n\r\n'.encode())
-            # Send the content of the requested file to the client
-            # start for
-            for i in range(0, len(outputdata)):
-                # send each line of the file in an encoded format
-                connectionSocket.send(outputdata[i].encode())
-            # end for
-            # send the end of file so that it doesn't run over
-            connectionSocket.send("\r\n".encode())
-            connectionSocket.close()
-            # end try
+            #download the web page.
+
+
+            if "https" in message:
+                response = urllib2.urlopen("https://", temp)
+                webContent = response.read()
+            else:
+                response = urllib2.urlopen("http://", temp)
+                webContent = response.read()
+
+            #check if any of the forbidden stuff is in the content
+            for x in failStrings:
+                if failStrings[x] in webContent:
+                    badContent=True
+                if failStrings[x] in temp:
+                    badURL=True
+            #check if any of the forbidden stuff is in the URL.
+
+            if  not badContent and not badURL:
+                #output normally
+                v= 'fake to get rid of error'
+            elif badContent:
+                #output the error 2 screen
+                filename = "error2.html"
+                f = open(filename)
+                outputdata = f.read()
+                f.close()
+                # Send one HTTP header line into socket
+                # Must be encoded otherwise the first run makes it plain text.
+                connectionSocket.send('HTTP/1.1 200 OK\r\n\r\n'.encode())
+                # Send the content of the requested file to the client
+                # start for
+                for i in range(0, len(outputdata)):
+                    # send each line of the file in an encoded format
+                    connectionSocket.send(outputdata[i].encode())
+                # end for
+                # send the end of file so that it doesn't run over
+                connectionSocket.send("\r\n".encode())
+                connectionSocket.close()
+                # end try
+            elif badURL:
+                # neither of these are testted.
+                f = open('error1.html')
+                outputdata = f.read()
+                f.close()
+                # Send one HTTP header line into socket
+                # Must be encoded otherwise the first run makes it plain text.
+                connectionSocket.send('HTTP/1.1 200 OK\r\n\r\n'.encode())
+                # Send the content of the requested file to the client
+                # start for
+                for i in range(0, len(outputdata)):
+                    # send each line of the file in an encoded format
+                    connectionSocket.send(outputdata[i].encode())
+                # end for
+                # send the end of file so that it doesn't run over
+                connectionSocket.send("\r\n".encode())
+                connectionSocket.close()
         connectionSocket.close()
     except IOError:
         # start except
